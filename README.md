@@ -4,11 +4,12 @@ GeeOS (寂) is a lightweight, UNIX like operating system, written in [YuLang](ht
 
 ## Getting Started
 
-Before building GeeOS, please make sure you have installed the following dependencies:
+Before running GeeOS on QEMU, please make sure you have installed the following dependencies:
 
 * [YuLang](https://github.com/MaxXSoft/YuLang) compiler
-* `llvm` toolchain
-* C++ compiler supporting C++17
+* LLVM toolchain (`llvm`, `lld`)
+* `g++` 8.0 or later
+* `qemu-system-riscv32` 4.0 ~ 4.2.1
 
 You may want to check the toolchain configuration in `toolchain.mk`. Then you can build this repository by executing the following command lines:
 
