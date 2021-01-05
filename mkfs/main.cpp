@@ -29,12 +29,12 @@ int LogError(string_view msg) {
 }
 
 IOStreamDevice GetDeviceFromFile(fstream &fs, string_view file_name) {
-  fs.open(file_name, ios::binary | ios::in | ios::out);
+  fs.open(file_name.data(), ios::binary | ios::in | ios::out);
   if (!fs.is_open()) {
     fs.clear();
-    fs.open(file_name, ios::out);
+    fs.open(file_name.data(), ios::out);
     fs.close();
-    fs.open(file_name, ios::binary | ios::in | ios::out);
+    fs.open(file_name.data(), ios::binary | ios::in | ios::out);
   }
   return IOStreamDevice(fs);
 }
