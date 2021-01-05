@@ -12,7 +12,7 @@ CXXFLAGS := -I$(MKFS_DIR)
 all: mkfs
 
 clean:
-	-rm $(MKFS_TARGET)
+	-rm -f $(MKFS_TARGET)
 
 mkfs: $(MKFS_TARGET)
 

@@ -58,3 +58,6 @@ $(USR_DIR): $(MKFS_DIR)
 
 $(BUILD_DIR):
 	mkdir $@
+
+qemu:
+	qemu-system-riscv32 -nographic -machine virt -m 128m -kernel build/geeos.elf

@@ -36,17 +36,19 @@ YUCFLAGS := -I $(SRC_DIR)
 CFLAGS := -I$(SRC_DIR)
 ASFLAGS := -I$(BUILD_DIR)
 
+# python
+PYTHON := python3
 
 .PHONY: all clean libgee boot kernel
 
 all: libgee boot kernel
 
 clean:
-	-rm $(LIB_TARGET)
-	-rm $(BOOT_TARGET)
-	-rm $(BOOT_TARGET).*
-	-rm $(KERNEL_TARGET)
-	-rm $(KERNEL_TARGET).*
+	-rm -f $(LIB_TARGET)
+	-rm -f $(BOOT_TARGET)
+	-rm -f $(BOOT_TARGET).*
+	-rm -f $(KERNEL_TARGET)
+	-rm -f $(KERNEL_TARGET).*
 
 libgee: $(LIB_TARGET)
 
@@ -66,7 +68,7 @@ $(BOOT_TARGET): $(BOOT_TARGET).elf
 	# create dump
 	$(OBJD) $^ > $@.dump
 	# create coe file
-	$(UTILS_DIR)/bin2coe.py $@
+	$(PYTHON) $(UTILS_DIR)/bin2coe.py $@
 
 $(BOOT_TARGET).elf: $(BOOT_OBJ) $(BOOT_LDS) $(LIB_TARGET)
 	$(LD) -T$(BOOT_LDS) -L$(BUILD_DIR) -lgee -o $@ $(BOOT_OBJ)

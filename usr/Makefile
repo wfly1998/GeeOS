@@ -27,9 +27,9 @@ CFLAGS := -I$(USR_DIR)
 all: libgrt user
 
 clean:
-	-rm $(LIB_TARGET)
+	-rm -f $(LIB_TARGET)
 	-rm -rf $(BIN_TARGET_DIR)
-	-rm $(USER_IMG)
+	-rm -f $(USER_IMG)
 
 libgrt: $(LIB_TARGET)
 
