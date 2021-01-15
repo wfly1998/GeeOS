@@ -60,4 +60,4 @@ $(BUILD_DIR):
 	mkdir $@
 
 qemu:
-	qemu-system-riscv32 -nographic -machine virt -m 128m -kernel build/geeos.elf
+	qemu-system-riscv32 -nographic -machine virt -m 128m -bios none -kernel build/geeos.elf
