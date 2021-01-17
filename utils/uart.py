@@ -91,7 +91,7 @@ def read_uart(ser):
           print()
           break
         # send to uart
-        ser.write(ch)
+        ser.write(ch.encode())
   except KeyboardInterrupt:
     print()
   finally:
