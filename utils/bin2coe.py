@@ -22,7 +22,7 @@ def read_bin(file_name):
 def make_coe(words):
   coe = 'memory_initialization_radix = 16;\n'
   coe += 'memory_initialization_vector =\n'
-  contents = ['00000000'] * 128 + words
+  contents = ['00000000'] * 128 * 8 + words
   coe += '\n'.join(contents) + '\n'
   return coe
 
