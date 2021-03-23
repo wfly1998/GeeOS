@@ -6,6 +6,9 @@ public let io: IO = [IO] {}
 
 // put character
 public def putChar(this: IO&, c: u8) {
+  if c == '\n' {
+    putChar('\r')
+  }
   putChar(c)
 }
 
