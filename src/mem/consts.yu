@@ -15,8 +15,8 @@ extern declare _stack_start: ()
 extern declare _stack_end: ()
 
 // definitions about physical memory
-inline let KERNEL_BASE    = MEM_ADDR
-inline let KERNEL_VM_BASE = 0x80000000
-inline let PHY_STOP       = KERNEL_BASE + MEM_SIZE_MIB * 1024 * 1024
-inline let HEAP_SIZE      = MEM_SIZE_MIB * 1024
+inline let KERNEL_BASE    = MEM_ADDR as usize
+inline let KERNEL_VM_BASE = 0x80000000 as usize
+inline let PHY_STOP       = KERNEL_BASE + (MEM_SIZE_MIB as usize) * ((1024 * 1024) as usize)
+inline let HEAP_SIZE      = (MEM_SIZE_MIB * 1024) as usize
 inline let HEAP_BASE      = PHY_STOP - HEAP_SIZE

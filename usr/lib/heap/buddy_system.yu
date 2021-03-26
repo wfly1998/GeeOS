@@ -1,0 +1,141 @@
+public import lib.sync.spinlock
+public import lib.linked_list
+
+import lib.algo
+import lib.heap.heap
+
+// Memory allocator by Kernighan and Ritchie,
+// The C programming Language, 2nd ed.  Section 8.7.
+
+// size of heap memory that to be allocated each time
+let LEAST_ALLOC_LOG2 = 12 as usize
+let LEAST_ALLOC = ((1 as usize) << LEAST_ALLOC_LOG2) as usize
+
+// length of free_list
+inline let FREE_LIST_LEN = 11 as usize
+
+public struct BuddySystemAllocator {
+  // spinlock of heap
+  lock: Spinlock,
+  // free areas (size = 2^(index) * 4KB)
+  // from 4KB to 4MB per area
+  free_list: LinkedList[FREE_LIST_LEN],
+  // allocated memory
+  allocated: usize,
+  // total memory
+  total: usize,
+  // definition of heap memory
+  heap_memory: u8 var*,
+  // definition of heap base pointer,
+  heap_base: u8 var*,
+}
+public var buddy_system_allocator: BuddySystemAllocator = [BuddySystemAllocator] {}
+
+def buddySystemFreeMem(layout_ptr: u8 var*) {
+  let ptr = layout_ptr - (sizeof usize)
+  let size = *(ptr as usize var*)
+  let class = size.trailing_zeros() - LEAST_ALLOC_LOG2 as usize
+  // put back into free list
+  buddy_system_allocator.free_list[class].push(ptr as usize var*)
+
+  // merge free buddy lists
+  var current_ptr = ptr as usize;
+  var current_class = class;
+  while current_class < FREE_LIST_LEN {
+    let buddy = current_ptr ^ ((1 as usize) << (current_class + LEAST_ALLOC_LOG2))
+    var flag = false
+    for block in buddy_system_allocator.free_list[current_class].getLinkedListIterVar() {
+      if (block.value() as usize) == buddy {
+        block.pop()
+        flag = true
+        break
+      }
+    }
+
+    // Free buddy found
+    if flag {
+      buddy_system_allocator.free_list[current_class].pop()
+      current_ptr = min(current_ptr, buddy)
+      current_class += 1 as usize
+      buddy_system_allocator.free_list[current_class].push(current_ptr as usize var*)
+    } else {
+      break
+    }
+  }
+}
+
+def buddySystemAllocMem(layout_size: usize): u8 var* {
+  let size = max((layout_size+(sizeof usize as usize)).next_power_of_two(), LEAST_ALLOC);
+  let class = size.trailing_zeros() - LEAST_ALLOC_LOG2
+  var i: usize = class
+  while i < FREE_LIST_LEN {
+    if !buddy_system_allocator.free_list[i].is_empty() {
+      // Split buffers
+      var j: usize = i
+      // for j in ((class + 1)..(i + 1)).rev() {}
+      while j > class {
+        if buddy_system_allocator.free_list[j].is_empty() {
+          return null as u8 var*
+        }
+        let block = buddy_system_allocator.free_list[j].top()
+        buddy_system_allocator.free_list[j].pop()
+        buddy_system_allocator.free_list[j - 1 as usize].push((block as usize + ((1 as usize) << (j + (LEAST_ALLOC_LOG2 - 1 as usize)))) as usize var*)
+        buddy_system_allocator.free_list[j - 1 as usize].push(block)
+        j -= 1 as usize
+      }
+
+      if buddy_system_allocator.free_list[class].is_empty() {
+        return null as u8 var*
+      }
+      let result = buddy_system_allocator.free_list[class].top()
+      buddy_system_allocator.free_list[class].pop()
+      buddy_system_allocator.allocated += size
+      return result as u8 var* + (sizeof usize)
+    }
+    i += 1 as usize
+  }
+  null as u8 var*
+}
+
+// allocate new heap memory
+public def allocHeapMem(_: BuddySystemAllocator, size: usize): u8 var* {
+  buddy_system_allocator.lock.acquire()
+  let ret = buddySystemAllocMem(size)
+  buddy_system_allocator.lock.release()
+  ret
+}
+
+// free allocated heap memory
+public def freeHeapMem(_: BuddySystemAllocator,ptr: u8 var*) {
+  buddy_system_allocator.lock.acquire()
+  buddySystemFreeMem(ptr)
+  buddy_system_allocator.lock.release()
+}
+
+// initialize user heap
+public def initUserHeap(_: BuddySystemAllocator) {
+  let heap_base = heap_mem as usize
+  buddy_system_allocator.lock = newSpinlock()
+  buddy_system_allocator.heap_memory = heap_base as u8 var*
+  buddy_system_allocator.heap_base = buddy_system_allocator.heap_memory
+
+  let start = (heap_base + LEAST_ALLOC - 1 as usize) & (~LEAST_ALLOC + 1 as usize)
+  let end = (heap_base + HEAP_SIZE) & (~LEAST_ALLOC + 1 as usize)
+
+  var total = 0 as usize
+  var current_start = start
+
+  while current_start + LEAST_ALLOC <= end {
+    let lowbit = current_start & (~current_start + 1 as usize)
+    // FIXME
+    // let size = min(lowbit, prev_power_of_two(end - current_start)) as usize
+    let size = lowbit
+    total += size
+
+    // FIXME
+    buddy_system_allocator.free_list[size.trailing_zeros()-LEAST_ALLOC_LOG2 as usize].push(current_start as usize var*)
+    current_start += size
+  }
+
+  buddy_system_allocator.total += total
+}

@@ -1,0 +1,98 @@
+public struct LinkedList {
+  head: usize var*,
+}
+
+// return true if the list is empty
+public def is_empty(this: LinkedList&): bool {
+  this.head as usize == 0 as usize
+}
+
+// push item to the front of the list
+public def push(this: LinkedList var&, item: usize var*) {
+  *item = this.head as usize;
+  this.head = item;
+}
+
+// try to remove the first item in the list
+public def pop(this: LinkedList var&) {
+  // Advance head pointer
+  let item = this.head
+  this.head = *item as usize var*
+  item
+}
+
+// get top of linked list
+public def top(this: LinkedList&): usize var* {
+  this.head
+}
+
+// iterator for linked list
+public struct LinkedListIter {
+  curr: usize var*,
+  // list: LinkedList*,
+}
+
+// get linked list iter
+inline def getLinkedListIter(this: LinkedList&): LinkedListIter {
+  // [LinkedListIter] {this.head, &this}
+  [LinkedListIter] {this.head}
+}
+
+// iterator method next
+inline def next(this: LinkedListIter var&): usize var* {
+  let item = this.curr
+  let next = *item as usize var*
+  this.curr = next
+  item
+}
+
+// iterator method last
+inline def last(this: LinkedListIter&): bool {
+  this.curr as usize == 0 as usize
+}
+
+// represent a mutable node in LinkedList
+public struct ListNode {
+  prev: usize var*,
+  curr: usize var*,
+}
+
+// returns the pointed address
+public def value(this: ListNode&): usize var* {
+  this.curr
+}
+
+// remove the node from the list
+public def pop(this: ListNode&): usize var* {
+  // Skip the current one
+  *(this.prev) = *(this.curr);
+  this.curr
+}
+
+// A mutable iterator over the linked list
+public struct LinkedListIterVar {
+  // list: LinkedList var*,
+  prev: usize var*,
+  curr: usize var*,
+}
+
+// get linked list mutable iter
+inline def getLinkedListIterVar(this: LinkedList&): LinkedListIterVar {
+  // [LinkedListIter] {this.head, &this}
+  [LinkedListIterVar] {
+    &this.head as usize as usize var*,
+    this.head
+  }
+}
+
+// mutable iterator method next
+inline def next(this: LinkedListIterVar var&): ListNode {
+  let res = [ListNode] { this.prev, this.curr }
+  this.prev = this.curr
+  this.curr = *this.curr as usize var*
+  res
+}
+
+inline def last(this: LinkedListIterVar&): bool {
+  this.curr == null as usize var*
+}

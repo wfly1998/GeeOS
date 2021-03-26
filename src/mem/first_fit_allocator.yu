@@ -1,0 +1,167 @@
+public import arch.arch
+public import sync.spinlock
+
+import lib.alloc
+import mem.consts
+
+// Memory allocator by Kernighan and Ritchie,
+// The C programming Language, 2nd ed.  Section 8.7.
+
+// size of heap memory that to be allocated each time
+let LEAST_ALLOC = 32 as usize
+
+// definition of linked list header
+public struct FirstFitHeader {
+  next: FirstFitHeader var*,
+  size: usize,
+}
+
+public struct FirstFitAllocator {
+  // spinlock of heap
+  lock: Spinlock,
+  // head of linked list
+  base: FirstFitHeader,
+  // linked list that stores free memory blocks
+  free_unit: FirstFitHeader var*,
+  // definition of heap memory
+  heap_memory: u8 var*,
+  // definition of heap base pointer,
+  heap_base: u8 var*,
+}
+public var first_fit_allocator: FirstFitAllocator = [FirstFitAllocator] {}
+
+// allocate more heap space
+def increaseHeap(size: usize): u8 var* {
+  if first_fit_allocator.heap_base + size > first_fit_allocator.heap_memory + HEAP_SIZE {
+    // heap is full
+    null as u8 var*    // FIXME
+
+  }
+  else {
+    // just increase
+    let p = first_fit_allocator.heap_base
+    first_fit_allocator.heap_base += size
+    p
+  }
+}
+
+def firstFitFreeMem(ptr: u8 var*) {
+  // point to the header
+  let p = ptr as FirstFitHeader var* - 1
+  var q = first_fit_allocator.free_unit
+  while !(p > q && p < (*q).next) {
+    if q >= (*q).next && (p > q || p < (*q).next) {
+      break
+    }
+    q = (*q).next
+  }
+  // merge with previous adjacent unit
+  if p + (*p).size == (*q).next {
+    (*p).size += (*(*q).next).size
+    (*p).next = (*(*q).next).next
+  }
+  else {
+    (*p).next = (*q).next
+  }
+  // merge with next adjacent unit
+  if q + (*q).size == p {
+    (*q).size += (*p).size
+    (*q).next = (*p).next
+  }
+  else {
+    (*q).next = p
+  }
+  // set the free unit pointer
+  first_fit_allocator.free_unit = q
+}
+
+def moreCore(len: usize): FirstFitHeader var* {
+  // get size of increased headers
+  let unit_size = LEAST_ALLOC * ((len + LEAST_ALLOC - 1 as usize) /
+                                 LEAST_ALLOC)
+  // allocate more headers
+  let core_ptr = increaseHeap(unit_size * sizeof FirstFitHeader)
+  if core_ptr == null as u8 var* {
+    null as FirstFitHeader var*
+  }
+  else {
+    // initialize new header
+    let unit_ptr = core_ptr as FirstFitHeader var*
+    (*unit_ptr).size = unit_size
+    firstFitFreeMem((unit_ptr + 1) as u8 var*)
+    first_fit_allocator.free_unit
+  }
+}
+
+def firstFitAllocMem(size: usize): u8 var* {
+  let unit_size = ((size + sizeof FirstFitHeader - 1 as usize) /
+                   sizeof FirstFitHeader) + 1 as usize
+  var ret = null as u8 var*
+  // check if no free blocks
+  var prev = first_fit_allocator.free_unit
+  if prev == null as FirstFitHeader var* {
+    prev = &first_fit_allocator.base
+    first_fit_allocator.free_unit = prev
+    first_fit_allocator.base.next = first_fit_allocator.free_unit
+    first_fit_allocator.base.size = 0 as usize
+  }
+  // allocate free block
+  var p = (*prev).next
+  while true {
+    // big enough
+    if (*p).size >= unit_size {
+      if (*p).size == unit_size {
+        // exactly
+        (*prev).next = (*p).next
+      }
+      else {
+        // allocate tail end
+        (*p).size -= unit_size
+        p += (*p).size
+        (*p).size = unit_size
+      }
+      first_fit_allocator.free_unit = prev
+      ret = (p + 1) as u8 var*
+      break
+    }
+    if p == first_fit_allocator.free_unit {
+      p = moreCore(unit_size)
+      if p == null as FirstFitHeader var* {
+        // no spare space
+        ret = null as u8 var*
+        break
+      }
+    }
+    prev = p
+    p = (*p).next
+  }
+  ret
+}
+
+// allocate new heap memory
+def firstFitAllocHeapMem(size: usize): u8 var* {
+  first_fit_allocator.lock.acquire()
+  let ret = firstFitAllocMem(size)
+  first_fit_allocator.lock.release()
+  ret
+}
+
+// free allocated heap memory
+def firstFitFreeHeapMem(ptr: u8 var*) {
+  first_fit_allocator.lock.acquire()
+  firstFitFreeMem(ptr)
+  first_fit_allocator.lock.release()
+}
+
+// initialize heap memory
+public def initHeapMem(_: FirstFitAllocator&) {
+  first_fit_allocator.lock = newSpinlock()
+  first_fit_allocator.heap_memory = HEAP_BASE as u8 var*
+  first_fit_allocator.heap_base = first_fit_allocator.heap_memory
+  heap.init(firstFitAllocHeapMem, firstFitFreeHeapMem)
+}
+
+// get name of this allocator
+public def name(_: FirstFitAllocator&): u8* {
+  "first fit allocator"
+}
