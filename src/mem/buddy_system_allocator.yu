@@ -7,13 +7,17 @@ import lib.algo
 import lib.except
 import mem.consts
 
-// min size of heap memory buddy
-// min: 4B
-let LEAST_ALLOC_LOG2 = 2 as usize
-let LEAST_ALLOC = ((1 as usize) << LEAST_ALLOC_LOG2) as usize
-
 // length of free_list
 inline let FREE_LIST_LEN = 21 as usize
+
+// min size of heap memory buddy
+// min: 4B
+let MIN_ALLOC_LOG2 = 2 as usize
+let MIN_ALLOC = (1 as usize) << MIN_ALLOC_LOG2
+
+// max size of heap memory buddy
+// max: 4MB
+let MAX_ALLOC = (1 as usize) << (MIN_ALLOC_LOG2 + FREE_LIST_LEN - 1 as usize)
 
 // max size of heap memory buddy
 
@@ -41,7 +45,7 @@ public var buddy_system_allocator: BuddySystemAllocator = [BuddySystemAllocator]
 def buddySystemFreeMem(layout_ptr: u8 var*) {
   let ptr = layout_ptr - (sizeof usize)
   let size = *(ptr as usize var*)
-  let class = size.trailing_zeros() - LEAST_ALLOC_LOG2
+  let class = size.trailing_zeros() - MIN_ALLOC_LOG2
   // put back into free list
   buddy_system_allocator.free_list[class].push(ptr as usize var*)
 
@@ -49,7 +53,7 @@ def buddySystemFreeMem(layout_ptr: u8 var*) {
   var current_ptr = ptr as usize;
   var current_class = class;
   while current_class < FREE_LIST_LEN {
-    let buddy = current_ptr ^ ((1 as usize) << (current_class + LEAST_ALLOC_LOG2))
+    let buddy = current_ptr ^ ((1 as usize) << (current_class + MIN_ALLOC_LOG2))
     var flag = false
     for block in buddy_system_allocator.free_list[current_class].getLinkedListIterVar() {
       if (block.value() as usize) == buddy {
@@ -72,8 +76,8 @@ def buddySystemFreeMem(layout_ptr: u8 var*) {
 }
 
 def buddySystemAllocMem(layout_size: usize): u8 var* {
-  let size = max((layout_size+(sizeof usize as usize)).next_power_of_two(), LEAST_ALLOC);
-  let class = size.trailing_zeros() - LEAST_ALLOC_LOG2
+  let size = max((layout_size+(sizeof usize as usize)).next_power_of_two(), MIN_ALLOC);
+  let class = size.trailing_zeros() - MIN_ALLOC_LOG2
   var i: usize = class
   while i < FREE_LIST_LEN {
     if !buddy_system_allocator.free_list[i].is_empty() {
@@ -85,7 +89,7 @@ def buddySystemAllocMem(layout_size: usize): u8 var* {
         }
         let block = buddy_system_allocator.free_list[j].top()
         buddy_system_allocator.free_list[j].pop()
-        buddy_system_allocator.free_list[j - 1 as usize].push((block as usize + ((1 as usize) << (j + (LEAST_ALLOC_LOG2 - 1 as usize)))) as usize var*)
+        buddy_system_allocator.free_list[j - 1 as usize].push((block as usize + ((1 as usize) << (j + (MIN_ALLOC_LOG2 - 1 as usize)))) as usize var*)
         buddy_system_allocator.free_list[j - 1 as usize].push(block)
         j -= 1 as usize
       }
@@ -125,19 +129,19 @@ public def initHeapMem(_: BuddySystemAllocator&) {
   buddy_system_allocator.heap_memory = HEAP_BASE as u8 var*
   buddy_system_allocator.heap_base = buddy_system_allocator.heap_memory
 
-  let start = (HEAP_BASE + LEAST_ALLOC - 1 as usize) & (~LEAST_ALLOC + 1 as usize)
-  let end = (HEAP_BASE + HEAP_SIZE) & (~LEAST_ALLOC + 1 as usize)
+  let start = (HEAP_BASE + MIN_ALLOC - 1 as usize) & (~MIN_ALLOC + 1 as usize)
+  let end = (HEAP_BASE + HEAP_SIZE) & (~MIN_ALLOC + 1 as usize)
   assert(start <= end)
 
   var total = 0 as usize
   var current_start = start
 
-  while current_start + LEAST_ALLOC <= end {
+  while current_start + MIN_ALLOC <= end {
     let lowbit = current_start & (~current_start + 1 as usize)
-    let size = lowbit
+    let size = min(lowbit, MAX_ALLOC)
     total += size
 
-    buddy_system_allocator.free_list[size.trailing_zeros()-LEAST_ALLOC_LOG2 as usize].push(current_start as usize var*)
+    buddy_system_allocator.free_list[size.trailing_zeros()-MIN_ALLOC_LOG2 as usize].push(current_start as usize var*)
     current_start += size
   }
 
