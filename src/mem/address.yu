@@ -1,0 +1,16 @@
+// public type VirtAddr = usize
+// public type PhysAddr = usize
+public type PhysPageNum = usize
+public type VirtPageNum = usize
+
+public def indexes(this: VirtPageNum&): usize[2] {
+  var vpn = this
+  var idx: usize[2] = [usize[2]] {0 as usize, 0 as usize}
+  var i = 1
+  while i >= 0 {
+    idx[i] = vpn & 1023 as usize
+    vpn >>= 10 as usize
+    i -= 1
+  }
+  idx
+}

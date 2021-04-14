@@ -1,11 +1,16 @@
 public import arch.arch
+public import lib.algo
+public import mem.address
 public import mem.paging
 public import mem.attr
 public import mem.handler
 public import mem.area
 
 import mem.consts
+import lib.c.string
 import lib.except
+
+import lib.io
 
 public struct MemorySet {
   page_table: InactivePageTable,
@@ -48,4 +53,51 @@ public def with(this: MemorySet&): IptWithIter {
 
 public def token(this: MemorySet&): usize {
   this.page_table.token()
+}
+
+public def translate(this: MemorySet&, vpn: VirtPageNum): PageTableEntry var* {
+  let idx = vpn.indexes()
+  var ppn = this.page_table.root_frame.getPpn()
+  var res = null as PageTableEntry var*
+  for i in range(0 as usize, 2 as usize) {
+    let frame = newFrame(ppn)
+    let pa = frame.addr
+    let pte = (pa.addr + (sizeof PageTableEntry) * idx[i]) as PageTableEntry var*
+    if i == 1 as usize {
+      res = pte
+      break
+    }
+    if pte == null as PageTableEntry var* {
+      return null as PageTableEntry var*
+    }
+    ppn = (*pte).getPpn()
+  }
+  res
+}
+
+public def fromExistedUser(this: MemorySet var&): MemorySet {
+  var memory_set = newMemorySet()
+  // copy data sections/trap_context/user_stack
+  for area in this.areas.getMemAreaListIter() {
+    if area.start >= area.end {
+      continue
+    }
+    memory_set.push(area.start, area.end, area.attr, newFrameHandler());
+    // copy data from another space
+    let start = newVirtAddr(area.start)
+    let end = newVirtAddr(area.end)
+    for vpn in range(start.getVpn(), end.getVpn() + 1 as usize) {
+      let src_ppn = (*(this.translate(vpn))).getPpn()
+      let dst_ppn = (*(memory_set.translate(vpn))).getPpn()
+      let src_frame = newFrame(src_ppn)
+      let dst_frame = newFrame(dst_ppn)
+      let src_addr = src_frame.getAddr()
+      let dst_addr = dst_frame.getAddr()
+      if src_addr.getAddr() == 0 as usize || dst_addr.getAddr() == 0 as usize {
+        continue
+      }
+      memcpy(dst_addr.getAddr() as u8 var*, src_addr.getAddr() as u8 var*, 4096 as usize)
+    }
+  }
+  memory_set
 }

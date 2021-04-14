@@ -83,3 +83,21 @@ public def unmap(this: MemAreaList var&, pt: ActivePageTable var&) {
     cur = (*cur).next
   }
 }
+
+public struct MemAreaListIter {
+  curr: MemAreaList var*,
+}
+
+inline def getMemAreaListIter(this: MemAreaList var&): MemAreaListIter {
+  [MemAreaListIter] {&this}
+}
+
+inline def next(this: MemAreaListIter var&): MemoryArea var& {
+  var area = (*this.curr).area
+  this.curr = (*this.curr).next
+  area
+}
+
+inline def last(this: MemAreaListIter&): bool {
+  this.curr == null as MemAreaList var*
+}
