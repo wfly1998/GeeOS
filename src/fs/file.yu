@@ -129,3 +129,12 @@ public def replaceWith(this: File var&, that: File var&) {
   this = that
   this.inode.open()
 }
+
+// copy file
+public def copy(src: File&, dst: File var&) {
+  dst.status = src.status
+  dst.readable = src.readable
+  dst.writable = src.writable
+  dst.inode = src.inode
+  dst.offset = src.offset
+}

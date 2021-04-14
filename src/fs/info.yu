@@ -108,3 +108,15 @@ public def getFile(this: FileInfo var&, fd: i32): File var* {
     null as File var*
   }
 }
+
+// copy a fds
+public def copy(src: FileInfo&, dst: FileInfo var&) {
+  var i = 0
+  while i < FILE_COUNT {
+    if src.files[i].isOpened() {
+      // dst.files[i].setAllocated()
+      src.files[i].copy(dst.files[i])
+    }
+    i += 1
+  }
+}
