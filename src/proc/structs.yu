@@ -19,6 +19,9 @@ import proc.consts
 // must be page size because stack is allocated by frame allocator
 let STACK_SIZE  = PAGE_SIZE as usize
 
+// pid allocator
+var pid_allocator: usize = 0 as usize
+
 // definition of kernel thread stack
 public struct KernelStack {
   addr: u8 var*,
@@ -47,32 +50,35 @@ public def getTop(this: KernelStack&): usize {
 
 // definition of process
 public struct Process {
+  pid: usize,
   vm: MemorySet,
   fds: FileInfo,
   thread_count: i32,
 }
 
-def newProcess(vm: MemorySet): Process var* {
+public def newProcess(vm: MemorySet): Process var* {
   let proc = heap.alloc(sizeof Process) as Process var*
+  pid_allocator += 1 as usize
+  (*proc).pid = pid_allocator
   (*proc).vm = vm
   (*proc).fds.init()
   (*proc).thread_count = 0
   proc
 }
 
-def del(this: Process var*) {
+public def del(this: Process var*) {
   assert((*this).thread_count == 0, "Process.del")
   (*this).vm.del()
   (*this).fds.del()
   heap.dealloc(this as u8 var*)
 }
 
-def incCounter(this: Process var*): Process var* {
+public def incCounter(this: Process var*): Process var* {
   (*this).thread_count += 1
   this
 }
 
-def decCounter(this: Process var*): Process var* {
+public def decCounter(this: Process var*): Process var* {
   (*this).thread_count -= 1
   if (*this).thread_count < 0 {
     panic("decCounter")
@@ -83,7 +89,7 @@ def decCounter(this: Process var*): Process var* {
   this
 }
 
-def getFds(this: Process var*): FileInfo var& {
+public def getFds(this: Process var*): FileInfo var& {
   (*this).fds
 }
 
