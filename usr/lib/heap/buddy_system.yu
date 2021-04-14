@@ -19,8 +19,8 @@ let MAX_ALLOC = (1 as usize) << (MIN_ALLOC_LOG2 + FREE_LIST_LEN - 1 as usize)
 public struct BuddySystemAllocator {
   // spinlock of heap
   lock: Spinlock,
-  // free areas (size = 2^(index) * 4KB)
-  // from 4KB to 4MB per area
+  // free areas (size = 2^(index) * 4B)
+  // from 4B to 4MB per area
   free_list: LinkedList[FREE_LIST_LEN],
   // allocated memory
   allocated: usize,

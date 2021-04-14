@@ -13,6 +13,8 @@ public enum SyscallId {
   Sync = 81,
   Exit = 93,
   Yield = 124,
+  GetPid = 172,
+  Fork = 220,
   Execve = 221,
 }
 
@@ -73,6 +75,16 @@ inline def exit(code: usize) {
 // yield and reschedule
 inline def yield(): i32 {
   syscall(0, 0, 0, 0, 0, 0, 0, SyscallId.Yield)
+}
+
+// get process id
+inline def getPid(): i32 {
+  syscall(0, 0, 0, 0, 0, 0, 0, SyscallId.GetPid)
+}
+
+// fork process
+inline def fork(): i32 {
+  syscall(0, 0, 0, 0, 0, 0, 0, SyscallId.Fork)
 }
 
 // execute program

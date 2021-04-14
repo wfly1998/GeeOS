@@ -1,0 +1,9 @@
+import lib.io
+import lib.sys.syscall
+
+extern def main(argc: i32, argv: u8**): i32 {
+  let ret = fork()
+  let pid = getPid()
+  io <<< "fork's return is " <<< ret <<< ", pid is " <<< pid <<< '\n'
+  0
+}
