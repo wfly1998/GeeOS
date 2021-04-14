@@ -17,6 +17,8 @@ let SYS_FSTAT   = 80 as usize
 let SYS_SYNC    = 81 as usize
 let SYS_EXIT    = 93 as usize
 let SYS_YIELD   = 124 as usize
+let SYS_GETPID  = 172 as usize
+let SYS_FORK    = 220 as usize
 let SYS_EXECVE  = 221 as usize
 
 
@@ -42,6 +44,8 @@ public def runSyscall(tf: TrapFrame var&): isize {
     SYS_SYNC { sysSync() }
     SYS_EXIT { sysExit(tf.x[10]) }
     SYS_YIELD { sysYield() }
+    SYS_GETPID { sysGetPid() }
+    SYS_FORK { sysFork(tf) }
     SYS_EXECVE {
       sysExecve(tf.x[10] as u8*, tf.x[11] as u8**, tf.x[12] as u8**)
     }

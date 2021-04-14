@@ -11,6 +11,19 @@ public def sysYield(): isize {
   0
 }
 
+public def sysGetPid(): isize {
+  (*(*getCurrentThread()).proc).pid as isize
+}
+
+public def sysFork(tf: TrapFrame var&): isize {
+  let pid = (*(*getCurrentThread()).proc).pid
+  let new_thread = getCurrentThread().fork(tf)
+  let trap_cx: ContextContext var& = *(*new_thread).context.context_addr
+  trap_cx.tf.x[10] = 0 as usize
+  addThread(new_thread)
+  pid as isize
+}
+
 public def sysExecve(path: u8*, argv: u8**, envp: u8**): isize {
   if execute(path, getCurrentTid()) {
     sleep()
