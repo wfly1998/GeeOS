@@ -98,6 +98,18 @@ public def newUserContext(entry: usize, ustack_top: usize,
   newUserCC(entry, ustack_top, satp).pushAt(kstack_top)
 }
 
+// create a fork of thread context
+public def newForkContext(satp: usize, tf: TrapFrame, kstack_top: usize): Context {
+  let cc = [ContextContext] {
+    _retTrap as usize,
+    // tf.sepc,
+    satp,
+    [usize[12]] {},
+    tf
+  }
+  cc.pushAt(kstack_top)
+}
+
 // set initialize arguments for context
 public def appendInitArgs(this: Context&, args: usize[3]) {
   let cc: ContextContext var& = *this.context_addr
