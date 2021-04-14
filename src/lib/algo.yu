@@ -73,3 +73,22 @@ inline def next_power_of_two(num: usize): usize {
   }
   (1 as usize) << ((((sizeof usize) as usize) * (8 as usize)) - num.leading_zeros())
 }
+
+public struct RangeIter {
+  cur: usize,
+  end: usize,
+}
+
+inline def range(start: usize, end: usize): RangeIter {
+  [RangeIter] {start, end}
+}
+
+inline def next(this: RangeIter var&): usize {
+  let ret = this.cur
+  this.cur += 1 as usize
+  ret
+}
+
+inline def last(this: RangeIter&): bool {
+  this.cur >= this.end
+}
