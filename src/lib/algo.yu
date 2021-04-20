@@ -83,6 +83,10 @@ inline def range(start: usize, end: usize): RangeIter {
   [RangeIter] {start, end}
 }
 
+inline def range(end: usize): RangeIter {
+  range(0 as usize, end)
+}
+
 inline def next(this: RangeIter var&): usize {
   let ret = this.cur
   this.cur += 1 as usize
