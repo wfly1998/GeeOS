@@ -25,7 +25,7 @@ public def fork(old_thread: Thread var*, tf: TrapFrame var&): Thread var* {
     newForkContext(memory_set.token(), tf, kstack.getTop()),
     kstack,
     proc,
-    0 as Tid,
+    old_thread.getWait(),
   }
   thread
 }
