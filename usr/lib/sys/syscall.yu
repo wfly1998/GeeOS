@@ -18,6 +18,8 @@ public enum SyscallId {
   Execve = 221,
 }
 
+inline let AT_FDCWD = -100
+
 // defined in 'syscall.S'
 extern declare syscall: (i32, i32, i32, i32, i32, i32, i32, SyscallId): i32
 
@@ -33,7 +35,7 @@ inline def chdir(path: u8*): i32 {
 
 // open file
 inline def open(path: u8*, flags: i32): i32 {
-  syscall(path as i32, flags, 0, 0, 0, 0, 0, SyscallId.Open)
+  syscall(AT_FDCWD, path as i32, flags, 0, 0, 0, 0, SyscallId.Open)
 }
 
 // close file
