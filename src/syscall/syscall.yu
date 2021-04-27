@@ -1,56 +1,302 @@
 public import arch.arch
 public import define.context
 
+import syscall.consts
 import syscall.fs
 import syscall.proc
+import lib.except
 import lib.io
 
-// definitions of system call id
-let SYS_DUP3    = 24 as usize
-let SYS_CHDIR   = 49 as usize
-let SYS_OPEN    = 56 as usize
-let SYS_CLOSE   = 57 as usize
-let SYS_LSEEK   = 62 as usize
-let SYS_READ    = 63 as usize
-let SYS_WRITE   = 64 as usize
-let SYS_FSTAT   = 80 as usize
-let SYS_SYNC    = 81 as usize
-let SYS_EXIT    = 93 as usize
-let SYS_YIELD   = 124 as usize
-let SYS_GETPID  = 172 as usize
-let SYS_FORK    = 220 as usize
-let SYS_EXECVE  = 221 as usize
 
+def unimplemented(name: u8*, ret: isize): isize {
+  io <<< "unimplemented syscall " <<< name <<< '\n'
+  ret
+}
 
 // perform system call
 public def runSyscall(tf: TrapFrame var&): isize {
-  when tf.x[17] {
-    SYS_DUP3 {
-      sysDup3(tf.x[10] as i32, tf.x[11] as i32, tf.x[12] as i32)
-    }
-    SYS_CHDIR { sysChdir(tf.x[10] as u8*) }
-    SYS_OPEN { sysOpen(tf.x[10] as u8*, tf.x[11] as i32) }
-    SYS_CLOSE { sysClose(tf.x[10] as i32) }
-    SYS_LSEEK {
-      sysLseek(tf.x[10] as i32, tf.x[11], tf.x[12] as i32) as isize
-    }
-    SYS_READ {
-      sysRead(tf.x[10] as i32, tf.x[11] as u8 var*, tf.x[12] as usize)
-    }
-    SYS_WRITE {
-      sysWrite(tf.x[10] as i32, tf.x[11] as u8*, tf.x[12] as usize)
-    }
-    SYS_FSTAT { sysFstat(tf.x[10] as i32, tf.x[11] as Stat var*) }
+  // io <<< "\trunSyscall: sp = 0x" <<$ getSp() <<< '\n'
+  let syscall_id = tf.x[17]
+  let a0 = tf.x[10], a1 = tf.x[11], a2 = tf.x[12]
+  when syscall_id {
+    SYS_IO_SETUP { unimplemented("io_setup", 0 as isize) }
+    SYS_IO_DESTROY { unimplemented("io_destroy", 0 as isize) }
+    SYS_IO_SUBMIT { unimplemented("io_submit", 0 as isize) }
+    SYS_IO_CANCEL { unimplemented("io_cancel", 0 as isize) }
+    SYS_IO_GETEVENTS { unimplemented("io_getevents", 0 as isize) }
+    SYS_SETXATTR { unimplemented("setxattr", 0 as isize) }
+    SYS_LSETXATTR { unimplemented("lsetxattr", 0 as isize) }
+    SYS_FSETXATTR { unimplemented("fsetxattr", 0 as isize) }
+    SYS_GETXATTR { unimplemented("getxattr", 0 as isize) }
+    SYS_LGETXATTR { unimplemented("lgetxattr", 0 as isize) }
+    SYS_FGETXATTR { unimplemented("fgetxattr", 0 as isize) }
+    SYS_LISTXATTR { unimplemented("listxattr", 0 as isize) }
+    SYS_LLISTXATTR { unimplemented("llistxattr", 0 as isize) }
+    SYS_FLISTXATTR { unimplemented("flistxattr", 0 as isize) }
+    SYS_REMOVEXATTR { unimplemented("removexattr", 0 as isize) }
+    SYS_LREMOVEXATTR { unimplemented("lremovexattr", 0 as isize) }
+    SYS_FREMOVEXATTR { unimplemented("fremovexattr", 0 as isize) }
+    SYS_GETCWD { unimplemented("getcwd", 0 as isize) }
+    SYS_LOOKUP_DCOOKIE { unimplemented("lookup_dcookie", 0 as isize) }
+    SYS_EVENTFD2 { unimplemented("eventfd2", EACCES as isize) }
+    SYS_EPOLL_CREATE1 { unimplemented("epoll_create1", 0 as isize) }
+    SYS_EPOLL_CTL { unimplemented("epoll_ctl", 0 as isize) }
+    SYS_EPOLL_PWAIT { unimplemented("epoll_pwait", 0 as isize) }
+    SYS_DUP { unimplemented("dup", 0 as isize) }
+    SYS_DUP3 { sysDup3(a0 as i32, a1 as i32, a2 as i32) }
+    SYS_FCNTL { unimplemented("fcntl", 0 as isize) }
+    SYS_INOTIFY_INIT1 { unimplemented("inotify_init1", 0 as isize) }
+    SYS_INOTIFY_ADD_WATCH { unimplemented("inotify_add_watch", 0 as isize) }
+    SYS_INOTIFY_RM_WATCH { unimplemented("inotify_rm_watch", 0 as isize) }
+    SYS_IOCTL { unimplemented("ioctl", 0 as isize) }
+    SYS_IOPRIO_SET { unimplemented("ioprio_set", 0 as isize) }
+    SYS_IOPRIO_GET { unimplemented("ioprio_get", 0 as isize) }
+    SYS_FLOCK { unimplemented("flock", 0 as isize) }
+    SYS_MKNODAT { unimplemented("mknodat", 0 as isize) }
+    SYS_MKDIRAT { unimplemented("mkdirat", 0 as isize) }
+    SYS_UNLINKAT { unimplemented("unlinkat", 0 as isize) }
+    SYS_SYMLINKAT { unimplemented("symlinkat", 0 as isize) }
+    SYS_LINKAT { unimplemented("linkat", 0 as isize) }
+    SYS_UMOUNT2 { unimplemented("umount2", EACCES as isize) }
+    SYS_MOUNT { unimplemented("mount", EACCES as isize) }
+    SYS_PIVOT_ROOT { unimplemented("pivot_root", 0 as isize) }
+    SYS_NFSSERVCTL { unimplemented("nfsservctl", 0 as isize) }
+    SYS_STATFS { unimplemented("statfs", EACCES as isize) }
+    SYS_FSTATFS { unimplemented("fstatfs", EACCES as isize) }
+    SYS_TRUNCATE { unimplemented("truncate", 0 as isize) }
+    SYS_FTRUNCATE { unimplemented("ftruncate", 0 as isize) }
+    SYS_FALLOCATE { unimplemented("fallocate", 0 as isize) }
+    SYS_FACCESSAT { unimplemented("faccessat", 0 as isize) }
+    SYS_CHDIR { sysChdir(a0 as u8*) }
+    SYS_FCHDIR { unimplemented("fchdir", 0 as isize) }
+    SYS_CHROOT { unimplemented("chroot", 0 as isize) }
+    SYS_FCHMOD { unimplemented("fchmod", 0 as isize) }
+    SYS_FCHMODAT { unimplemented("fchmodat", 0 as isize) }
+    SYS_FCHOWNAT { unimplemented("fchownat", 0 as isize) }
+    SYS_FCHOWN { unimplemented("fchown", 0 as isize) }
+    SYS_OPENAT { sysOpenAt(a0 as i32, a1 as u8*, a2 as i32) }
+    SYS_CLOSE { sysClose(a0 as i32) }
+    SYS_VHANGUP { unimplemented("vhangup", 0 as isize) }
+    SYS_PIPE2 { unimplemented("pipe2", 0 as isize) }
+    SYS_QUOTACTL { unimplemented("quotactl", 0 as isize) }
+    SYS_GETDENTS64 { unimplemented("getdents64", 0 as isize) }
+    SYS_LSEEK { sysLseek(a0 as i32, a1, a2 as i32) as isize }
+    SYS_READ { sysRead(a0 as i32, a1 as u8 var*, a2 as usize) }
+    SYS_WRITE { sysWrite(a0 as i32, a1 as u8*, a2 as usize) }
+    SYS_READV { unimplemented("readv", 0 as isize) }
+    SYS_WRITEV { unimplemented("writev", 0 as isize) }
+    SYS_PREAD64 { unimplemented("pread64", 0 as isize) }
+    SYS_PWRITE64 { unimplemented("pwrite64", 0 as isize) }
+    SYS_PREADV { unimplemented("preadv", 0 as isize) }
+    SYS_PWRITEV { unimplemented("pwritev", 0 as isize) }
+    SYS_SENDFILE { unimplemented("sendfile", 0 as isize) }
+    SYS_PSELECT6 { unimplemented("pselect6", 0 as isize) }
+    SYS_PPOLL { unimplemented("ppoll", 0 as isize) }
+    SYS_SIGNALFD4 { unimplemented("signalfd4", 0 as isize) }
+    SYS_VMSPLICE { unimplemented("vmsplice", 0 as isize) }
+    SYS_SPLICE { unimplemented("splice", 0 as isize) }
+    SYS_TEE { unimplemented("tee", 0 as isize) }
+    SYS_READLINKAT { unimplemented("readlinkat", 0 as isize) }
+    SYS_FSTATAT { unimplemented("fstatat", 0 as isize) }
+    SYS_FSTAT { sysFstat(a0 as i32, a1 as Stat var*) }
     SYS_SYNC { sysSync() }
-    SYS_EXIT { sysExit(tf.x[10]) }
-    SYS_YIELD { sysYield() }
+    SYS_FSYNC { unimplemented("fsync", 0 as isize) }
+    SYS_FDATASYNC { unimplemented("fdatasync", 0 as isize) }
+    SYS_SYNC_FILE_RANGE { unimplemented("sync_file_range", 0 as isize) }
+    SYS_TIMERFD_CREATE { unimplemented("timerfd_create", 0 as isize) }
+    SYS_TIMERFD_SETTIME { unimplemented("timerfd_settime", 0 as isize) }
+    SYS_TIMERFD_GETTIME { unimplemented("timerfd_gettime", 0 as isize) }
+    SYS_UTIMENSAT { unimplemented("utimensat", 0 as isize) }
+    SYS_ACCT { unimplemented("acct", 0 as isize) }
+    SYS_CAPGET { unimplemented("capget", 0 as isize) }
+    SYS_CAPSET { unimplemented("capset", 0 as isize) }
+    SYS_PERSONALITY { unimplemented("personality", 0 as isize) }
+    SYS_EXIT { sysExit(a0) }
+    SYS_EXIT_GROUP { unimplemented("exit_group", 0 as isize) }
+    SYS_WAITID { unimplemented("waitid", 0 as isize) }
+    SYS_SET_TID_ADDRESS { unimplemented("set_tid_address", 0 as isize) }
+    SYS_UNSHARE { unimplemented("unshare", 0 as isize) }
+    SYS_FUTEX { unimplemented("futex", 0 as isize) }
+    SYS_SET_ROBUST_LIST { unimplemented("set_robust_list", 0 as isize) }
+    SYS_GET_ROBUST_LIST { unimplemented("get_robust_list", 0 as isize) }
+    SYS_NANOSLEEP { unimplemented("nanosleep", 0 as isize) }
+    SYS_GETITIMER { unimplemented("getitimer", 0 as isize) }
+    SYS_SETITIMER { unimplemented("setitimer", 0 as isize) }
+    SYS_KEXEC_LOAD { unimplemented("kexec_load", 0 as isize) }
+    SYS_INIT_MODULE { unimplemented("init_module", 0 as isize) }
+    SYS_DELETE_MODULE { unimplemented("delete_module", 0 as isize) }
+    SYS_TIMER_CREATE { unimplemented("timer_create", 0 as isize) }
+    SYS_TIMER_GETTIME { unimplemented("timer_gettime", 0 as isize) }
+    SYS_TIMER_GETOVERRUN { unimplemented("timer_getoverrun", 0 as isize) }
+    SYS_TIMER_SETTIME { unimplemented("timer_settime", 0 as isize) }
+    SYS_TIMER_DELETE { unimplemented("timer_delete", 0 as isize) }
+    SYS_CLOCK_SETTIME { unimplemented("clock_settime", 0 as isize) }
+    SYS_CLOCK_GETTIME { unimplemented("clock_gettime", 0 as isize) }
+    SYS_CLOCK_GETRES { unimplemented("clock_getres", 0 as isize) }
+    SYS_CLOCK_NANOSLEEP { unimplemented("clock_nanosleep", 0 as isize) }
+    SYS_SYSLOG { unimplemented("syslog", 0 as isize) }
+    SYS_PTRACE { unimplemented("ptrace", 0 as isize) }
+    SYS_SCHED_SETPARAM { unimplemented("sched_setparam", 0 as isize) }
+    SYS_SCHED_SETSCHEDULER { unimplemented("sched_setscheduler", 0 as isize) }
+    SYS_SCHED_GETSCHEDULER { unimplemented("sched_getscheduler", 0 as isize) }
+    SYS_SCHED_GETPARAM { unimplemented("sched_getparam", 0 as isize) }
+    SYS_SCHED_SETAFFINITY { unimplemented("sched_setaffinity", 0 as isize) }
+    SYS_SCHED_GETAFFINITY { unimplemented("sched_getaffinity", 0 as isize) }
+    SYS_SCHED_YIELD { sysSchedYield() }
+    SYS_SCHED_GET_PRIORITY_MAX { unimplemented("sched_get_priority_max", 0 as isize) }
+    SYS_SCHED_GET_PRIORITY_MIN { unimplemented("sched_get_priority_min", 0 as isize) }
+    SYS_SCHED_RR_GET_INTERVAL { unimplemented("sched_rr_get_interval", 0 as isize) }
+    SYS_RESTART_SYSCALL { unimplemented("restart_syscall", 0 as isize) }
+    SYS_KILL { unimplemented("kill", 0 as isize) }
+    SYS_TKILL { unimplemented("tkill", 0 as isize) }
+    SYS_TGKILL { unimplemented("tgkill", 0 as isize) }
+    SYS_SIGALTSTACK { unimplemented("sigaltstack", 0 as isize) }
+    SYS_RT_SIGSUSPEND { unimplemented("rt_sigsuspend", 0 as isize) }
+    SYS_RT_SIGACTION { unimplemented("rt_sigaction", 0 as isize) }
+    SYS_RT_SIGPROCMASK { unimplemented("rt_sigprocmask", 0 as isize) }
+    SYS_RT_SIGPENDING { unimplemented("rt_sigpending", 0 as isize) }
+    SYS_RT_SIGTIMEDWAIT { unimplemented("rt_sigtimedwait", 0 as isize) }
+    SYS_RT_SIGQUEUEINFO { unimplemented("rt_sigqueueinfo", 0 as isize) }
+    SYS_RT_SIGRETURN { unimplemented("rt_sigreturn", 0 as isize) }
+    SYS_SETPRIORITY { unimplemented("setpriority", 0 as isize) }
+    SYS_GETPRIORITY { unimplemented("getpriority", 0 as isize) }
+    SYS_REBOOT { unimplemented("reboot", 0 as isize) }
+    SYS_SETREGID { unimplemented("setregid", 0 as isize) }
+    SYS_SETGID { unimplemented("setgid", 0 as isize) }
+    SYS_SETREUID { unimplemented("setreuid", 0 as isize) }
+    SYS_SETUID { unimplemented("setuid", 0 as isize) }
+    SYS_SETRESUID { unimplemented("setresuid", 0 as isize) }
+    SYS_GETRESUID { unimplemented("getresuid", 0 as isize) }
+    SYS_SETRESGID { unimplemented("setresgid", 0 as isize) }
+    SYS_GETRESGID { unimplemented("getresgid", 0 as isize) }
+    SYS_SETFSUID { unimplemented("setfsuid", 0 as isize) }
+    SYS_SETFSGID { unimplemented("setfsgid", 0 as isize) }
+    SYS_TIMES { unimplemented("times", 0 as isize) }
+    SYS_SETPGID { unimplemented("setpgid", 0 as isize) }
+    SYS_GETPGID { unimplemented("getpgid", 0 as isize) }
+    SYS_GETSID { unimplemented("getsid", 0 as isize) }
+    SYS_SETSID { unimplemented("setsid", 0 as isize) }
+    SYS_GETGROUPS { unimplemented("getgroups", 0 as isize) }
+    SYS_SETGROUPS { unimplemented("setgroups", 0 as isize) }
+    SYS_UNAME { unimplemented("uname", 0 as isize) }
+    SYS_SETHOSTNAME { unimplemented("sethostname", 0 as isize) }
+    SYS_SETDOMAINNAME { unimplemented("setdomainname", 0 as isize) }
+    SYS_GETRLIMIT { unimplemented("getrlimit", 0 as isize) }
+    SYS_SETRLIMIT { unimplemented("setrlimit", 0 as isize) }
+    SYS_GETRUSAGE { unimplemented("getrusage", 0 as isize) }
+    SYS_UMASK { unimplemented("umask", 511 as isize) }  // 0o777 = 511
+    SYS_PRCTL { unimplemented("prctl", 0 as isize) }
+    SYS_GETCPU { unimplemented("getcpu", 0 as isize) }
+    SYS_GETTIMEOFDAY { unimplemented("gettimeofday", 0 as isize) }
+    SYS_SETTIMEOFDAY { unimplemented("settimeofday", 0 as isize) }
+    SYS_ADJTIMEX { unimplemented("adjtimex", 0 as isize) }
     SYS_GETPID { sysGetPid() }
-    SYS_FORK { sysFork(tf) }
-    SYS_EXECVE {
-      sysExecve(tf.x[10] as u8*, tf.x[11] as u8**, tf.x[12] as u8**)
-    }
+    SYS_GETPPID { unimplemented("getppid", 0 as isize) }
+    SYS_GETUID { unimplemented("getuid", 0 as isize) }
+    SYS_GETEUID { unimplemented("geteuid", 0 as isize) }
+    SYS_GETGID { unimplemented("getgid", 0 as isize) }
+    SYS_GETEGID { unimplemented("getegid", 0 as isize) }
+    SYS_GETTID { unimplemented("gettid", 0 as isize) }
+    SYS_SYSINFO { unimplemented("sysinfo", 0 as isize) }
+    SYS_MQ_OPEN { unimplemented("mq_open", 0 as isize) }
+    SYS_MQ_UNLINK { unimplemented("mq_unlink", 0 as isize) }
+    SYS_MQ_TIMEDSEND { unimplemented("mq_timedsend", 0 as isize) }
+    SYS_MQ_TIMEDRECEIVE { unimplemented("mq_timedreceive", 0 as isize) }
+    SYS_MQ_NOTIFY { unimplemented("mq_notify", 0 as isize) }
+    SYS_MQ_GETSETATTR { unimplemented("mq_getsetattr", 0 as isize) }
+    SYS_MSGGET { unimplemented("msgget", 0 as isize) }
+    SYS_MSGCTL { unimplemented("msgctl", 0 as isize) }
+    SYS_MSGRCV { unimplemented("msgrcv", 0 as isize) }
+    SYS_MSGSND { unimplemented("msgsnd", 0 as isize) }
+    SYS_SEMGET { unimplemented("semget", 0 as isize) }
+    SYS_SEMCTL { unimplemented("semctl", 0 as isize) }
+    SYS_SEMTIMEDOP { unimplemented("semtimedop", 0 as isize) }
+    SYS_SEMOP { unimplemented("semop", 0 as isize) }
+    SYS_SHMGET { unimplemented("shmget", 0 as isize) }
+    SYS_SHMCTL { unimplemented("shmctl", 0 as isize) }
+    SYS_SHMAT { unimplemented("shmat", 0 as isize) }
+    SYS_SHMDT { unimplemented("shmdt", 0 as isize) }
+    SYS_SOCKET { unimplemented("socket", 0 as isize) }
+    SYS_SOCKETPAIR { unimplemented("socketpair", EACCES as isize) }
+    SYS_BIND { unimplemented("bind", 0 as isize) }
+    SYS_LISTEN { unimplemented("listen", 0 as isize) }
+    SYS_ACCEPT { unimplemented("accept", 0 as isize) }
+    SYS_CONNECT { unimplemented("connect", 0 as isize) }
+    SYS_GETSOCKNAME { unimplemented("getsockname", 0 as isize) }
+    SYS_GETPEERNAME { unimplemented("getpeername", 0 as isize) }
+    SYS_SENDTO { unimplemented("sendto", 0 as isize) }
+    SYS_RECVFROM { unimplemented("recvfrom", 0 as isize) }
+    SYS_SETSOCKOPT { unimplemented("setsockopt", 0 as isize) }
+    SYS_GETSOCKOPT { unimplemented("getsockopt", 0 as isize) }
+    SYS_SHUTDOWN { unimplemented("shutdown", 0 as isize) }
+    SYS_SENDMSG { unimplemented("sendmsg", 0 as isize) }
+    SYS_RECVMSG { unimplemented("recvmsg", 0 as isize) }
+    SYS_READAHEAD { unimplemented("readahead", 0 as isize) }
+    SYS_BRK { unimplemented("brk", ENOMEM as isize) }
+    SYS_MUNMAP { unimplemented("munmap", 0 as isize) }
+    SYS_MREMAP { unimplemented("mremap", 0 as isize) }
+    SYS_ADD_KEY { unimplemented("add_key", 0 as isize) }
+    SYS_REQUEST_KEY { unimplemented("request_key", 0 as isize) }
+    SYS_KEYCTL { unimplemented("keyctl", 0 as isize) }
+    SYS_CLONE { sysFork(tf) }   // TODO: change to sys_clone
+    SYS_EXECVE { sysExecve(a0 as u8*, a1 as u8**, a2 as u8**) }
+    SYS_MMAP { unimplemented("mmap", 0 as isize) }
+    SYS_FADVISE64 { unimplemented("fadvise64", 0 as isize) }
+    SYS_SWAPON { unimplemented("swapon", 0 as isize) }
+    SYS_SWAPOFF { unimplemented("swapoff", 0 as isize) }
+    SYS_MPROTECT { unimplemented("mprotect", 0 as isize) }
+    SYS_MSYNC { unimplemented("msync", 0 as isize) }
+    SYS_MLOCK { unimplemented("mlock", 0 as isize) }
+    SYS_MUNLOCK { unimplemented("munlock", 0 as isize) }
+    SYS_MLOCKALL { unimplemented("mlockall", 0 as isize) }
+    SYS_MUNLOCKALL { unimplemented("munlockall", 0 as isize) }
+    SYS_MINCORE { unimplemented("mincore", 0 as isize) }
+    SYS_MADVISE { unimplemented("madvise", 0 as isize) }
+    SYS_REMAP_FILE_PAGES { unimplemented("remap_file_pages", 0 as isize) }
+    SYS_MBIND { unimplemented("mbind", 0 as isize) }
+    SYS_GET_MEMPOLICY { unimplemented("get_mempolicy", 0 as isize) }
+    SYS_SET_MEMPOLICY { unimplemented("set_mempolicy", 0 as isize) }
+    SYS_MIGRATE_PAGES { unimplemented("migrate_pages", 0 as isize) }
+    SYS_MOVE_PAGES { unimplemented("move_pages", 0 as isize) }
+    SYS_RT_TGSIGQUEUEINFO { unimplemented("rt_tgsigqueueinfo", 0 as isize) }
+    SYS_PERF_EVENT_OPEN { unimplemented("perf_event_open", 0 as isize) }
+    SYS_ACCEPT4 { unimplemented("accept4", 0 as isize) }
+    SYS_RECVMMSG { unimplemented("recvmmsg", 0 as isize) }
+    SYS_ARCH_SPECIFIC_SYSCALL { unimplemented("arch_specific_syscall", 0 as isize) }
+    SYS_WAIT4 { unimplemented("wait4", 0 as isize) }
+    SYS_PRLIMIT64 { unimplemented("prlimit64", 0 as isize) }
+    SYS_FANOTIFY_INIT { unimplemented("fanotify_init", 0 as isize) }
+    SYS_FANOTIFY_MARK { unimplemented("fanotify_mark", 0 as isize) }
+    SYS_NAME_TO_HANDLE_AT { unimplemented("name_to_handle_at", 0 as isize) }
+    SYS_OPEN_BY_HANDLE_AT { unimplemented("open_by_handle_at", 0 as isize) }
+    SYS_CLOCK_ADJTIME { unimplemented("clock_adjtime", 0 as isize) }
+    SYS_SYNCFS { unimplemented("syncfs", 0 as isize) }
+    SYS_SETNS { unimplemented("setns", 0 as isize) }
+    SYS_SENDMMSG { unimplemented("sendmmsg", 0 as isize) }
+    SYS_PROCESS_VM_READV { unimplemented("process_vm_readv", 0 as isize) }
+    SYS_PROCESS_VM_WRITEV { unimplemented("process_vm_writev", 0 as isize) }
+    SYS_KCMP { unimplemented("kcmp", 0 as isize) }
+    SYS_FINIT_MODULE { unimplemented("finit_module", ENOSYS as isize) }
+    SYS_SCHED_SETATTR { unimplemented("sched_setattr", 0 as isize) }
+    SYS_SCHED_GETATTR { unimplemented("sched_getattr", 0 as isize) }
+    SYS_RENAMEAT2 { unimplemented("renameat2", 0 as isize) }
+    SYS_SECCOMP { unimplemented("seccomp", 0 as isize) }
+    SYS_GETRANDOM { unimplemented("getrandom", 0 as isize) }
+    SYS_MEMFD_CREATE { unimplemented("memfd_create", 0 as isize) }
+    SYS_BPF { unimplemented("bpf", 0 as isize) }
+    SYS_EXECVEAT { unimplemented("execveat", 0 as isize) }
+    SYS_USERFAULTFD { unimplemented("userfaultfd", 0 as isize) }
+    SYS_MEMBARRIER { unimplemented("membarrier", 0 as isize) }
+    SYS_MLOCK2 { unimplemented("mlock2", 0 as isize) }
+    SYS_COPY_FILE_RANGE { unimplemented("copy_file_range", 0 as isize) }
+    SYS_PREADV2 { unimplemented("preadv2", 0 as isize) }
+    SYS_PWRITEV2 { unimplemented("pwritev2", 0 as isize) }
+    SYS_PKEY_MPROTECT { unimplemented("pkey_mprotect", 0 as isize) }
+    SYS_PKEY_ALLOC { unimplemented("pkey_alloc", 0 as isize) }
+    SYS_PKEY_FREE { unimplemented("pkey_free", 0 as isize) }
     else {
-      io <<< "unknown user system call! id = " <<< tf.x[17] <<< '\n'
+      io <<< "unknown user system call! id = " <<< syscall_id <<< '\n'
+      abort()
       -1 as isize
     }
   }

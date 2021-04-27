@@ -1,5 +1,6 @@
 import proc.proc
 import fs.fs
+import syscall.consts
 
 // file type
 public enum FileType {
@@ -81,19 +82,29 @@ public def sysChdir(path: u8*): isize {
   ret as isize
 }
 
-public def sysOpen(path: u8*, flags: i32): isize {
+public def sysOpenAt(dir_fd: i32, path: u8*, flags: i32): isize {
   let fds: FileInfo var& = getCurrentThread().getFds()
   var fd = -1
   fds.lock()
   // lookup the specific file
   let path = newStrView(path)
-  let inode = fds.getCwd().lookup(path)
+  let dir = if dir_fd == AT_FDCWD {
+    fds.getCwd()
+  }
+  else {
+    (*fds.getFile(dir_fd)).inode
+  }
+  let inode = dir.lookup(path)
   if inode != null as INode var* {
     // allocate a new file descriptor & open file
     !fds.allocFd(fd) || (*fds.getFile(fd)).open(inode, flags) < 0
   }
   fds.unlock()
   fd as isize
+}
+
+public def sysOpen(path: u8*, flags: i32): isize {
+  sysOpenAt(AT_FDCWD, path, flags)
 }
 
 public def sysClose(fd: i32): isize {

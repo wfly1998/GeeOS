@@ -6,7 +6,7 @@ public def sysExit(code: usize): isize {
   0 as isize
 }
 
-public def sysYield(): isize {
+public def sysSchedYield(): isize {
   yield()
   0
 }
