@@ -134,6 +134,9 @@ public def sleep(this: ThreadPool var&, tid: Tid) {
 // wake up specific thread
 public def wakeUp(this: ThreadPool var&, tid: Tid) {
   let info: ThreadInfo var& = this.getInfo(tid)
+  if info.status.status == ThreadStatus.Ready {
+    this.scheduler.remove(tid)
+  }
   info.status.status = ThreadStatus.Ready
   // push to scheduler, wating for next schedule
   this.scheduler.push(tid)

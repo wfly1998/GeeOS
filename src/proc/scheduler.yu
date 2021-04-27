@@ -72,6 +72,15 @@ public def pop(this: Scheduler var&, tid: Tid var&): bool {
   }
 }
 
+// remove a thread from scheduler
+public def remove(this: Scheduler var&, tid: Tid) {
+  let tid = tid + 1 as Tid
+  let prev = this.threads[tid].prev, next = this.threads[tid].next
+  this.threads[next].prev = prev
+  this.threads[prev].next = next
+  this.threads[tid].is_valid = false
+}
+
 // tell scheduler a tick passed
 // returns true if there is no current thread
 // or current thread run out of time slices
