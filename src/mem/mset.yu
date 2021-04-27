@@ -82,7 +82,7 @@ public def fromExistedUser(this: MemorySet var&): MemorySet {
     if area.start >= area.end {
       continue
     }
-    memory_set.push(area.start, area.end, area.attr, newFrameHandler());
+    memory_set.push(area.start, area.end, area.attr, newFrameHandler())
     // copy data from another space
     let start = newVirtAddr(area.start)
     let end = newVirtAddr(area.end)

@@ -92,7 +92,8 @@ inline def getMemAreaListIter(this: MemAreaList var&): MemAreaListIter {
   [MemAreaListIter] {&this}
 }
 
-inline def next(this: MemAreaListIter var&): MemoryArea var& {
+inline def next(this: MemAreaListIter var&): MemoryArea {
+  // THIS FUNCTION COULD NOT RETURN REFERENCE!
   var area = (*this.curr).area
   this.curr = (*this.curr).next
   area
