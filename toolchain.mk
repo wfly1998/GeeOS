@@ -1,5 +1,5 @@
 # external parameters
-DEBUG = 1
+DEBUG ?= 0
 OPT_LEVEL = 2
 
 # judge if is debug mode
@@ -14,7 +14,7 @@ else
 endif
 
 # cross compile toolchain prefix
-RV_PREFIX := riscv64-linux-gnu-
+RV_PREFIX := riscv32-unknown-linux-gnu-
 
 # cross Yu compiler
 YUFLAGS := -Werror $(YU_OPT_ARG)

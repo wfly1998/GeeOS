@@ -20,6 +20,7 @@ export USR_DIR := $(TOP_DIR)/usr
 export MKFS_DIR := $(TOP_DIR)/mkfs
 export UTILS_DIR := $(TOP_DIR)/utils
 export OBJ_DIR := $(BUILD_DIR)/obj
+export TERM := gnome-terminal
 
 # all sub-makes
 SUB_MAKE := $(SRC_DIR) $(USR_DIR) $(MKFS_DIR)
@@ -61,3 +62,8 @@ $(BUILD_DIR):
 
 qemu:
 	qemu-system-riscv32 -nographic -machine virt -m 128m -bios none -kernel build/geeos.elf
+
+debug:
+	$(TERM) -- qemu-system-riscv32 -nographic -machine virt -m 128m -bios none -kernel build/geeos.elf -s -S
+	sleep 2
+	$(TERM) -- $(RV_PREFIX)gdb -x .gdbinit -tui
